@@ -9,8 +9,6 @@ until.setMilliseconds(0);
 
 const since = new Date(until - 7 * 24 * 60 * 60 * 1000);
 
-const contentsEl = document.getElementById("contents");
-
 // TODO: Grab from all recent repos.
 octokit.repos.getCommits({
   owner: "all-of-us",
@@ -20,6 +18,7 @@ octokit.repos.getCommits({
   since: since,
   until: until
 }).then(result => {
+  const contentsEl = document.getElementById("contents");
   const prRe = /^(.*) \(#(\d+)\)$/;
   result.data
     .map(r => {
