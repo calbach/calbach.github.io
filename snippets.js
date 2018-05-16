@@ -22,7 +22,7 @@ octokit.repos.getCommits({
 }).then(result => {
   const contentsEl = document.getElementById("contents");
   const h2 = document.createElement('h2');
-  h2.textContent = `Week of ${to.toDateString()}`;
+  h2.textContent = `Week of ${from.toDateString()}`;
   const p = document.createElement('p');
   contentsEl.append(h2);
   contentsEl.append(p);
