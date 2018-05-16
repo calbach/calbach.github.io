@@ -9,16 +9,24 @@ until.setMilliseconds(0);
 
 const since = new Date(until - 7 * 24 * 60 * 60 * 1000);
 
+[[since, until], [until, new Date()]].forEach(([from, to]) => {
+
 // TODO: Grab from all recent repos.
 octokit.repos.getCommits({
   owner: "all-of-us",
   repo: "workbench",
   author: "calbach",
   per_page: 128,
-  since: since,
-  until: until
+  since: from,
+  until: to
 }).then(result => {
   const contentsEl = document.getElementById("contents");
+  const h2 = document.createElement('h2');
+  h2.textContent = `Week of ${to.toDateString()}`;
+  const p = document.createElement('p');
+  contentsEl.append(h2);
+  contentsEl.append(p);
+  
   const prRe = /^(.*) \(#(\d+)\)$/;
   result.data
     .map(r => {
@@ -30,6 +38,8 @@ octokit.repos.getCommits({
       return `[#${match[2]}](https://github.com/all-of-us/workbench/pull/${match[2]}) ${match[1]}`;
     })
     .forEach(line => {
-      contentsEl.textContent += `- ${line}\n`;
+      contentsEl.append(`- ${line}\n`);
     });
-})
+});
+  
+});
