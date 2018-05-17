@@ -1,4 +1,4 @@
-let octokit = require('@octokit/rest')();
+const octokit = Octokit();
 
 const until = new Date();
 until.setDate(until.getDate() - ((until.getDay() - 1) % 7));
