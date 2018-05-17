@@ -1,4 +1,4 @@
-const octokit = Octokit();
+let octokit = require('@octokit/rest')();
 
 const until = new Date();
 until.setDate(until.getDate() - ((until.getDay() - 1) % 7));
@@ -9,37 +9,59 @@ until.setMilliseconds(0);
 
 const since = new Date(until - 7 * 24 * 60 * 60 * 1000);
 
-[[since, until], [until, new Date()]].forEach(([from, to]) => {
-
-// TODO: Grab from all recent repos.
-octokit.repos.getCommits({
-  owner: "all-of-us",
-  repo: "workbench",
-  author: "calbach",
-  per_page: 128,
-  since: from,
-  until: to
+octokit.search.commits({
+  q: "author:calbach",
+  sort: "committer-date",
+  per_page: 64
 }).then(result => {
   const contentsEl = document.getElementById("contents");
-  const h2 = document.createElement('h2');
-  h2.textContent = `Week of ${from.toDateString()}`;
-  const p = document.createElement('p');
-  contentsEl.append(h2);
-  contentsEl.append(p);
-  
   const prRe = /^(.*) \(#(\d+)\)$/;
-  result.data
-    .map(r => {
-      const msg = r.commit.message.split('\n')[0];
-      const match = msg.match(prRe);
-      if (!match) {
-        return msg;
-      }
-      return `[#${match[2]}](https://github.com/all-of-us/workbench/pull/${match[2]}) ${match[1]}`;
-    })
-    .forEach(line => {
-      contentsEl.append(`- ${line}\n`);
-    });
-});
   
+  const dateBuckets = new Map([
+    [[until, new Date()], {}],
+    [[since, until], {}]
+  ]);
+  result.data.items.forEach(c => {
+    let bkt;
+    for (let [[from, to], b] of dateBuckets) {
+      const d = new Date(c.commit.committer.date);
+      if (from <= d && d < to) {
+        bkt = b;
+        break;
+      }
+    }
+    if (!bkt) return;
+    
+    const repo = c.repository.full_name;
+    if (!bkt[repo]) {
+      bkt[repo] = [];
+    }
+    bkt[repo].push(c.commit);
+  });
+  
+  for (let [[from, to], b] of dateBuckets) {
+    const h1 = document.createElement('h1');
+    h1.textContent = `Week of ${from.toDateString()}`;
+    contentsEl.append(h1);
+    
+    for (let repo of Object.keys(b).sort()) {
+      const h2 = document.createElement('h2');
+      h2.textContent = repo;
+      const p = document.createElement('p');
+      contentsEl.append(h2);
+      contentsEl.append(p);
+      
+      b[repo].map(c => {
+          const msg = c.message.split('\n')[0];
+          const match = msg.match(prRe);
+          if (!match) {
+            return msg;
+          }
+          return `[#${match[2]}](https://github.com/${repo}/pull/${match[2]}) ${match[1]}`;
+        })
+        .forEach(line => {
+          contentsEl.append(`- ${line}\n`);
+        });
+    }
+  }
 });
