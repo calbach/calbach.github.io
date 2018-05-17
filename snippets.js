@@ -24,7 +24,7 @@ octokit.search.commits({
     [[since, until], {}]
   ]);
   result.data.items.forEach(c => {
-    if (c.repository.owner.startsWith(user + "/")) return;
+    if (c.repository.owner.login.startsWith(user + "/")) return;
     
     let bkt;
     for (let [[from, to], b] of dateBuckets) {
