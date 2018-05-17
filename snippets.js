@@ -49,7 +49,7 @@ octokit.search.commits({
     
     for (let repo of Object.keys(b).sort()) {
       const h2 = document.createElement('h2');
-      h2.textContent = repo;
+      h2.textContent = `${repo}\n-\n\n`;
       const p = document.createElement('p');
       contentsEl.append(h2);
       contentsEl.append(p);
