@@ -9,7 +9,8 @@ until.setMilliseconds(0);
 
 const since = new Date(until - 7 * 24 * 60 * 60 * 1000);
 
-const user = 'calbach';
+const params = new URLSearchParams(document.location.search.substring(1));
+const user = params.get('user') || 'calbach';
 
 octokit.search.commits({
   q: "author:" + user,
