@@ -1,5 +1,6 @@
 const octokit = Octokit();
 
+const week = 7 * 24 * 60 * 60 * 1000;
 const until = new Date();
 until.setDate(until.getDate() - ((until.getDay() - 1) % 7));
 until.setHours(0);
@@ -7,10 +8,9 @@ until.setMinutes(0);
 until.setSeconds(0);
 until.setMilliseconds(0);
 
-const since = new Date(until - 7 * 24 * 60 * 60 * 1000);
-
 const params = new URLSearchParams(document.location.search.substring(1));
 const user = params.get('user') || 'calbach';
+const weeksBack = params.get('weeks') || 1;
 
 octokit.search.commits({
   q: "author:" + user,
@@ -21,9 +21,11 @@ octokit.search.commits({
   const prRe = /^(.*) \(#(\d+)\)$/;
   
   const dateBuckets = new Map([
-    [[until, new Date()], {}],
-    [[since, until], {}]
+    [[until, new Date()], {}]
   ]);
+  for (let i = 0; i < weeksBack; i++) {
+    dateBuckets.set([new Date(until - (i+1)*week), new Date(until - i*week)], {});
+  }
   result.data.items.forEach(c => {
     if (c.repository.owner.login == user) return;
     
