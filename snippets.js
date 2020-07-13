@@ -15,7 +15,7 @@ const weeksBack = params.get('weeks') || 1;
 octokit.search.commits({
   q: "author:" + user,
   sort: "committer-date",
-  per_page: 64
+  per_page: Math.max(64, 10 * weeksBack)
 }).then(result => {
   const contentsEl = document.getElementById("contents");
   const prRe = /^(.*) \(#(\d+)\)$/;
