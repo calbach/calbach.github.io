@@ -53,8 +53,9 @@ if (!from || !to) {
       <br/><a href={`?img=${img}&from=0.0.1&to=1.0.4`}>Example</a>
     </div>, document.getElementById('contents'));
 } else {
-  const urlA = `https://storage.googleapis.com/terra-docker-image-documentation/${img}-${from}-versions.json`;
-  const urlB = `https://storage.googleapis.com/terra-docker-image-documentation/${img}-${to}-versions.json`;
+  const docBase = 'https://storage.googleapis.com/terra-docker-image-documentation';
+  const urlA = `${docBase}/${img}-${from}-versions.json`;
+  const urlB = `${docBase}/${img}-${to}-versions.json`;
 
   renderDiff(urlA, urlB);
 }
