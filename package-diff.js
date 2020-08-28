@@ -29,7 +29,7 @@ const renderDiff = async (urlA, urlB) => {
           <h1>{h}</h1>
           <h2>Packages added:</h2>
           {add.map((p) => <div>
-            {p}
+            {p} ({b[h][p]})
           </div>)}
           <h2>Packages removed:</h2>
           {rm.map((p) => <div>
