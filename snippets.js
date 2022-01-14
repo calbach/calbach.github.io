@@ -12,23 +12,38 @@ const params = new URLSearchParams(document.location.search.substring(1));
 const user = params.get('user') || 'calbach';
 const weeksBack = params.get('weeks') || 1;
 
-octokit.search.commits({
-  q: "author:" + user,
-  sort: "committer-date",
-  per_page: Math.max(64, 10 * weeksBack)
-}).then(result => {
+(async () => {
+  const commits = [];
+  
+  const limit = new Date(until - weeksBack*week);
+  const withinLimit = (c) => limit < new Date(c.commit.committer.date);
+  let page = 1;
+  while (true) {
+    const {data} = await octokit.search.commits({
+      q: "author:" + user,
+      sort: "committer-date",
+      per_page: Math.max(64, 10 * weeksBack),
+      page
+    });
+    commits.push(...(data.items.filter(withinLimit)));
+    if (!data.items.every(withinLimit) || data.total_size <= commits.length) {
+      break;
+    }
+    page++;
+  }
+
   const contentsEl = document.getElementById("contents");
   const prRe = /^(.*) \(#(\d+)\)$/;
-  
+
   const dateBuckets = new Map([
     [[until, new Date()], {}]
   ]);
   for (let i = 0; i < weeksBack; i++) {
     dateBuckets.set([new Date(until - (i+1)*week), new Date(until - i*week)], {});
   }
-  result.data.items.forEach(c => {
+  commits.forEach(c => {
     if (c.repository.owner.login == user) return;
-    
+
     let bkt;
     for (let [[from, to], b] of dateBuckets) {
       const d = new Date(c.commit.committer.date);
@@ -44,20 +59,18 @@ octokit.search.commits({
     }
     bkt[repo].push(c.commit);
   });
-  
+
   for (let [[from, to], b] of dateBuckets) {
     const h1 = document.createElement('h1');
     h1.textContent = `Week of ${from.toDateString()}`;
     contentsEl.append(h1);
-    
-    for (let repo of Object.keys(b).sort()) {
+     for (let repo of Object.keys(b).sort()) {
       const h2 = document.createElement('h2');
       h2.textContent = `# ${repo}\n`;
       const p = document.createElement('p');
       contentsEl.append(h2);
       contentsEl.append(p);
-      
-      b[repo].map(c => {
+       b[repo].map(c => {
           const msg = c.message.split('\n')[0];
           const match = msg.match(prRe);
           if (!match) {
@@ -71,4 +84,4 @@ octokit.search.commits({
       contentsEl.append('\n');
     }
   }
-});
+})();
